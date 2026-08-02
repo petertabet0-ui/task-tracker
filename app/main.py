@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Response
 
+from app.business_rules import validate_status_transition
 from app.models import TaskCreate, TaskPriority, TaskResponse, TaskStatus, TaskUpdate
 from app.storage import add_task, delete_task, get_all_tasks, get_task_by_id, update_task
 
@@ -43,6 +44,13 @@ def read_task(task_id: str) -> TaskResponse:
 
 @app.patch("/tasks/{task_id}", response_model=TaskResponse)
 def patch_task(task_id: str, payload: TaskUpdate) -> TaskResponse:
+    existing = get_task_by_id(task_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    if "status" in payload.model_fields_set:
+        validate_status_transition(existing.status, payload.status)
+
     task = update_task(task_id, payload)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")

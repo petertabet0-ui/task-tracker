@@ -1,15 +1,1 @@
-[
-  {
-    "id": "33cac0b9-35df-43bb-b374-effb72c8762f",
-    "title": "string",
-    "description": "string",
-    "status": "ToDo",
-    "priority": "Low",
-    "assignee": "string",
-    "tags": [
-      "string"
-    ],
-    "created_at": "2026-08-02T12:58:19.929850Z",
-    "updated_at": "2026-08-02T13:06:33.294255Z"
-  }
-]
+[]
