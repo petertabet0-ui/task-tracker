@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Tracker</title>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f6f8;
+      color: #1f2933;
+      line-height: 1.5;
+    }
+
+    .page-header {
+      background: #ffffff;
+      border-bottom: 1px solid #d9e2ec;
+      padding: 1.5rem 1.25rem;
+    }
+
+    .page-header__inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .page-header h1 {
+      margin: 0 0 0.25rem;
+      font-size: 1.75rem;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: #52606d;
+      max-width: 36rem;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-secondary {
+      background: #e4e7eb;
+      color: #1f2933;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd2d9;
+    }
+
+    .board {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .column {
+      background: #e4e7eb;
+      border-radius: 12px;
+      padding: 0.75rem;
+      min-height: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .column__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.25rem 0.35rem;
+    }
+
+    .column__title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .column__count {
+      background: #ffffff;
+      color: #52606d;
+      border-radius: 999px;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .column__cards {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #d9e2ec;
+      border-radius: 10px;
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+    }
+
+    .card__title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .card__description {
+      margin: 0;
+      color: #52606d;
+      font-size: 0.92rem;
+    }
+
+    .card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .badge--priority-low {
+      background: #e3f9e5;
+      color: #047857;
+    }
+
+    .badge--priority-medium {
+      background: #fff3c4;
+      color: #b45309;
+    }
+
+    .badge--priority-high {
+      background: #ffe3e3;
+      color: #b91c1c;
+    }
+
+    .card__assignee {
+      font-size: 0.85rem;
+      color: #334e68;
+    }
+
+    .card__tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .tag {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 0.15rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .card__actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .board-status {
+      max-width: 1200px;
+      margin: 1rem auto 0;
+      padding: 0 1.25rem;
+      color: #52606d;
+      font-weight: 600;
+    }
+
+    .board-status--error {
+      color: #b91c1c;
+    }
+
+    .column__empty {
+      margin: 0;
+      padding: 1rem 0.5rem;
+      text-align: center;
+      color: #7b8794;
+      font-size: 0.9rem;
+      font-style: italic;
+    }
+
+    .card[draggable="true"] {
+      cursor: grab;
+    }
+
+    .card--dragging {
+      opacity: 0.55;
+    }
+
+    .column--drag-over .column__cards {
+      outline: 2px dashed #2563eb;
+      outline-offset: 4px;
+      border-radius: 8px;
+      background: rgba(37, 99, 235, 0.06);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal[hidden] {
+      display: none;
+    }
+
+    .modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .modal__dialog {
+      position: relative;
+      width: min(100%, 480px);
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+    }
+
+    .modal__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .modal__header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+
+    .modal__close {
+      border: none;
+      background: transparent;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #52606d;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.9rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #334e68;
+    }
+
+    .form-field input,
+    .form-field textarea,
+    .form-field select {
+      font: inherit;
+      font-weight: 400;
+      color: #1f2933;
+      border: 1px solid #cbd2d9;
+      border-radius: 8px;
+      padding: 0.6rem 0.7rem;
+    }
+
+    .form-required {
+      color: #b91c1c;
+    }
+
+    .modal__error {
+      margin: 0 0 0.9rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 8px;
+      background: #ffe3e3;
+      color: #b91c1c;
+      font-size: 0.9rem;
+    }
+
+    .modal__actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .modal__actions-right {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+
+    .btn-danger {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .btn-danger:hover {
+      background: #fecaca;
+    }
+
+    .btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    @media (max-width: 900px) {
+      .board {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="page-header__inner">
+      <div>
+        <h1>Task Tracker</h1>
+        <p>Tasks are organized by status across To Do, In Progress, and Done columns.</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="new-task-btn">New Task</button>
+    </div>
+  </header>
+
+  <div id="board-status" class="board-status" hidden aria-live="polite"></div>
+
+  <main class="board">
+    <section class="column" data-status="ToDo">
+      <div class="column__header">
+        <h2 class="column__title">To Do</h2>
+        <span class="column__count">0</span>
+      </div>
+      <div class="column__cards"></div>
+    </section>
+
+    <section class="column" data-status="InProgress">
+      <div class="column__header">
+        <h2 class="column__title">In Progress</h2>
+        <span class="column__count">0</span>
+      </div>
+      <div class="column__cards"></div>
+    </section>
+
+    <section class="column" data-status="Done">
+      <div class="column__header">
+        <h2 class="column__title">Done</h2>
+        <span class="column__count">0</span>
+      </div>
+      <div class="column__cards"></div>
+    </section>
+  </main>
+
+  <div id="task-modal" class="modal" hidden aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal__header">
+        <h2 id="modal-title">New Task</h2>
+        <button type="button" class="modal__close" data-close-modal aria-label="Close">&times;</button>
+      </div>
+      <form id="task-form" novalidate>
+        <p id="modal-error" class="modal__error" hidden></p>
+
+        <label class="form-field" for="field-title">
+          Title <span class="form-required">*</span>
+          <input id="field-title" name="title" type="text" required maxlength="200">
+        </label>
+
+        <label class="form-field" for="field-description">
+          Description
+          <textarea id="field-description" name="description" rows="3"></textarea>
+        </label>
+
+        <label class="form-field" for="field-priority">
+          Priority
+          <select id="field-priority" name="priority">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+          </select>
+        </label>
+
+        <label class="form-field" for="field-assignee">
+          Assignee
+          <input id="field-assignee" name="assignee" type="text">
+        </label>
+
+        <label class="form-field" for="field-tags">
+          Tags
+          <input id="field-tags" name="tags" type="text" placeholder="e.g. backend, urgent">
+        </label>
+
+        <div class="modal__actions">
+          <button type="button" id="delete-task-btn" class="btn btn-danger" hidden>Delete</button>
+          <div class="modal__actions-right">
+            <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+            <button type="submit" id="submit-task-btn" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://127.0.0.1:8000";
+
+    const PRIORITY_ORDER = { High: 0, Medium: 1, Low: 2 };
+
+    const PRIORITY_CLASS = {
+      Low: "badge--priority-low",
+      Medium: "badge--priority-medium",
+      High: "badge--priority-high",
+    };
+
+    let currentTasks = [];
+    let modalMode = "create";
+    let editingTaskId = null;
+    let draggedTaskId = null;
+    let boardErrorTimer = null;
+
+    const modalEl = document.getElementById("task-modal");
+    const taskFormEl = document.getElementById("task-form");
+    const modalTitleEl = document.getElementById("modal-title");
+    const modalErrorEl = document.getElementById("modal-error");
+    const submitTaskBtn = document.getElementById("submit-task-btn");
+    const deleteTaskBtn = document.getElementById("delete-task-btn");
+    const boardEl = document.querySelector(".board");
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function showStatus(message, isError = false) {
+      const statusEl = document.getElementById("board-status");
+      statusEl.textContent = message;
+      statusEl.className = isError ? "board-status board-status--error" : "board-status";
+      statusEl.hidden = !message;
+    }
+
+    function showTemporaryBoardError(message, durationMs = 4000) {
+      if (boardErrorTimer) {
+        clearTimeout(boardErrorTimer);
+      }
+      showStatus(message, true);
+      boardErrorTimer = setTimeout(() => {
+        showStatus("");
+        boardErrorTimer = null;
+      }, durationMs);
+    }
+
+    async function parseErrorResponse(response) {
+      try {
+        const data = await response.json();
+        if (typeof data.detail === "string") {
+          return data.detail;
+        }
+        if (Array.isArray(data.detail)) {
+          return data.detail
+            .map((item) => item.msg || JSON.stringify(item))
+            .join("; ");
+        }
+      } catch (error) {
+        return `Request failed with status ${response.status}`;
+      }
+      return `Request failed with status ${response.status}`;
+    }
+
+    function parseTagsInput(value) {
+      if (!value.trim()) {
+        return [];
+      }
+      return value
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean);
+    }
+
+    function showModalError(message) {
+      modalErrorEl.textContent = message;
+      modalErrorEl.hidden = !message;
+    }
+
+    function setModalOpen(isOpen) {
+      modalEl.hidden = !isOpen;
+      modalEl.setAttribute("aria-hidden", String(!isOpen));
+      document.body.style.overflow = isOpen ? "hidden" : "";
+    }
+
+    function resetModalForm() {
+      taskFormEl.reset();
+      document.getElementById("field-priority").value = "Medium";
+      showModalError("");
+      submitTaskBtn.disabled = false;
+      deleteTaskBtn.disabled = false;
+    }
+
+    function openCreateModal() {
+      modalMode = "create";
+      editingTaskId = null;
+      modalTitleEl.textContent = "New Task";
+      deleteTaskBtn.hidden = true;
+      resetModalForm();
+      setModalOpen(true);
+      document.getElementById("field-title").focus();
+    }
+
+    function openEditModal(taskId) {
+      const task = currentTasks.find((item) => item.id === taskId);
+      if (!task) {
+        showTemporaryBoardError("Could not find that task. Reloading board.");
+        loadTasks();
+        return;
+      }
+
+      modalMode = "edit";
+      editingTaskId = task.id;
+      modalTitleEl.textContent = "Edit Task";
+      deleteTaskBtn.hidden = false;
+      resetModalForm();
+
+      document.getElementById("field-title").value = task.title || "";
+      document.getElementById("field-description").value = task.description || "";
+      document.getElementById("field-priority").value = task.priority || "Medium";
+      document.getElementById("field-assignee").value = task.assignee || "";
+      document.getElementById("field-tags").value = Array.isArray(task.tags)
+        ? task.tags.join(", ")
+        : "";
+
+      setModalOpen(true);
+      document.getElementById("field-title").focus();
+    }
+
+    function closeModal() {
+      setModalOpen(false);
+      modalMode = "create";
+      editingTaskId = null;
+      showModalError("");
+      submitTaskBtn.disabled = false;
+      deleteTaskBtn.disabled = false;
+    }
+
+    function buildTaskPayload() {
+      const title = document.getElementById("field-title").value.trim();
+      const description = document.getElementById("field-description").value.trim();
+      const priority = document.getElementById("field-priority").value;
+      const assigneeRaw = document.getElementById("field-assignee").value.trim();
+      const tags = parseTagsInput(document.getElementById("field-tags").value);
+
+      if (!title) {
+        throw new Error("Title is required.");
+      }
+
+      const payload = {
+        title,
+        description,
+        priority,
+        tags,
+      };
+
+      if (assigneeRaw) {
+        payload.assignee = assigneeRaw;
+      } else if (modalMode === "edit") {
+        payload.assignee = null;
+      }
+
+      return payload;
+    }
+
+    async function saveTask(event) {
+      event.preventDefault();
+      showModalError("");
+
+      let payload;
+      try {
+        payload = buildTaskPayload();
+      } catch (error) {
+        showModalError(error.message);
+        return;
+      }
+
+      submitTaskBtn.disabled = true;
+
+      try {
+        const url =
+          modalMode === "create"
+            ? `${API_BASE}/tasks`
+            : `${API_BASE}/tasks/${editingTaskId}`;
+        const method = modalMode === "create" ? "POST" : "PATCH";
+
+        const response = await fetch(url, {
+          method,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(await parseErrorResponse(response));
+        }
+
+        closeModal();
+        await loadTasks();
+      } catch (error) {
+        showModalError(error.message);
+        submitTaskBtn.disabled = false;
+      }
+    }
+
+    async function deleteTask() {
+      if (!editingTaskId) {
+        return;
+      }
+
+      const confirmed = window.confirm("Delete this task? This action cannot be undone.");
+      if (!confirmed) {
+        return;
+      }
+
+      showModalError("");
+      deleteTaskBtn.disabled = true;
+      submitTaskBtn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_BASE}/tasks/${editingTaskId}`, {
+          method: "DELETE",
+        });
+
+        if (response.status !== 204) {
+          throw new Error(await parseErrorResponse(response));
+        }
+
+        closeModal();
+        await loadTasks();
+      } catch (error) {
+        showModalError(error.message);
+        deleteTaskBtn.disabled = false;
+        submitTaskBtn.disabled = false;
+      }
+    }
+
+    async function moveTaskStatus(taskId, destinationStatus) {
+      const task = currentTasks.find((item) => item.id === taskId);
+      if (!task || task.status === destinationStatus) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: destinationStatus }),
+        });
+
+        if (!response.ok) {
+          throw new Error(await parseErrorResponse(response));
+        }
+
+        await loadTasks();
+      } catch (error) {
+        await loadTasks();
+        showTemporaryBoardError(`Could not move task: ${error.message}`);
+      }
+    }
+
+    function renderTaskCard(task) {
+      const priorityClass = PRIORITY_CLASS[task.priority] || "badge--priority-medium";
+      const assigneeText = task.assignee
+        ? `Assignee: ${escapeHtml(task.assignee)}`
+        : "Unassigned";
+      const tags = Array.isArray(task.tags) ? task.tags : [];
+      const tagsHtml = tags
+        .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
+        .join("");
+
+      return `
+        <article class="card" draggable="true" data-task-id="${escapeHtml(task.id)}">
+          <h3 class="card__title">${escapeHtml(task.title)}</h3>
+          <p class="card__description">${escapeHtml(task.description || "")}</p>
+          <div class="card__meta">
+            <span class="badge ${priorityClass}">${escapeHtml(task.priority)}</span>
+            <span class="card__assignee">${assigneeText}</span>
+          </div>
+          ${tagsHtml ? `<div class="card__tags">${tagsHtml}</div>` : ""}
+          <div class="card__actions">
+            <button type="button" class="btn btn-secondary" data-action="edit">Edit</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderColumn(columnEl, tasks) {
+      const cardsEl = columnEl.querySelector(".column__cards");
+      const countEl = columnEl.querySelector(".column__count");
+      const sorted = [...tasks].sort(
+        (a, b) => (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99)
+      );
+
+      countEl.textContent = String(sorted.length);
+
+      if (sorted.length === 0) {
+        cardsEl.innerHTML = '<p class="column__empty">No tasks in this column.</p>';
+        return;
+      }
+
+      cardsEl.innerHTML = sorted.map(renderTaskCard).join("");
+    }
+
+    function renderBoard(tasks) {
+      const tasksByStatus = { ToDo: [], InProgress: [], Done: [] };
+
+      for (const task of tasks) {
+        if (Object.prototype.hasOwnProperty.call(tasksByStatus, task.status)) {
+          tasksByStatus[task.status].push(task);
+        }
+      }
+
+      document.querySelectorAll(".column").forEach((column) => {
+        const status = column.dataset.status;
+        renderColumn(column, tasksByStatus[status] || []);
+      });
+    }
+
+    function clearBoard() {
+      document.querySelectorAll(".column__count").forEach((el) => {
+        el.textContent = "0";
+      });
+      document.querySelectorAll(".column__cards").forEach((el) => {
+        el.innerHTML = "";
+      });
+    }
+
+    async function loadTasks() {
+      showStatus("Loading tasks...");
+      clearBoard();
+
+      try {
+        const response = await fetch(`${API_BASE}/tasks`);
+        if (!response.ok) {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+
+        const tasks = await response.json();
+        currentTasks = tasks;
+        showStatus("");
+        renderBoard(tasks);
+      } catch (error) {
+        showStatus(`Failed to load tasks. ${error.message}`, true);
+        document.querySelectorAll(".column").forEach((column) => {
+          renderColumn(column, []);
+        });
+      }
+    }
+
+    function setupEventListeners() {
+      document.getElementById("new-task-btn").addEventListener("click", openCreateModal);
+      taskFormEl.addEventListener("submit", saveTask);
+      deleteTaskBtn.addEventListener("click", deleteTask);
+
+      document.addEventListener("click", (event) => {
+        if (event.target.matches("[data-close-modal]")) {
+          closeModal();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !modalEl.hidden) {
+          closeModal();
+        }
+      });
+
+      boardEl.addEventListener("click", (event) => {
+        const editButton = event.target.closest('[data-action="edit"]');
+        if (!editButton) {
+          return;
+        }
+        const card = editButton.closest(".card");
+        if (card) {
+          openEditModal(card.dataset.taskId);
+        }
+      });
+
+      boardEl.addEventListener("dragstart", (event) => {
+        const card = event.target.closest(".card");
+        if (!card) {
+          return;
+        }
+        draggedTaskId = card.dataset.taskId;
+        event.dataTransfer.setData("text/plain", draggedTaskId);
+        event.dataTransfer.effectAllowed = "move";
+        card.classList.add("card--dragging");
+      });
+
+      boardEl.addEventListener("dragend", (event) => {
+        const card = event.target.closest(".card");
+        if (card) {
+          card.classList.remove("card--dragging");
+        }
+        draggedTaskId = null;
+        document.querySelectorAll(".column--drag-over").forEach((column) => {
+          column.classList.remove("column--drag-over");
+        });
+      });
+
+      boardEl.addEventListener("dragover", (event) => {
+        const column = event.target.closest(".column");
+        if (!column) {
+          return;
+        }
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        column.classList.add("column--drag-over");
+      });
+
+      boardEl.addEventListener("dragleave", (event) => {
+        const column = event.target.closest(".column");
+        if (!column) {
+          return;
+        }
+        if (!column.contains(event.relatedTarget)) {
+          column.classList.remove("column--drag-over");
+        }
+      });
+
+      boardEl.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const column = event.target.closest(".column");
+        if (!column) {
+          return;
+        }
+
+        column.classList.remove("column--drag-over");
+
+        const taskId = event.dataTransfer.getData("text/plain") || draggedTaskId;
+        const destinationStatus = column.dataset.status;
+        if (taskId && destinationStatus) {
+          moveTaskStatus(taskId, destinationStatus);
+        }
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupEventListeners();
+      loadTasks();
+    });
+  </script>
+</body>
+</html>
