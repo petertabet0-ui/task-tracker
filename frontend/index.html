@@ -212,6 +212,55 @@
       color: #b91c1c;
     }
 
+    .filters {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.75rem 1.25rem 0;
+    }
+
+    .filters__inner {
+      background: #ffffff;
+      border: 1px solid #d9e2ec;
+      border-radius: 10px;
+      padding: 0.85rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: flex-end;
+    }
+
+    .filters--active .filters__inner {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+    }
+
+    .filters__field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #52606d;
+      min-width: 120px;
+      flex: 1 1 140px;
+    }
+
+    .filters__field input,
+    .filters__field select {
+      font: inherit;
+      font-weight: 400;
+      color: #1f2933;
+      border: 1px solid #cbd2d9;
+      border-radius: 8px;
+      padding: 0.5rem 0.6rem;
+    }
+
+    .filters__actions {
+      display: flex;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+    }
+
     .column__empty {
       margin: 0;
       padding: 1rem 0.5rem;
@@ -369,6 +418,45 @@
 
   <div id="board-status" class="board-status" hidden aria-live="polite"></div>
 
+  <section id="filters" class="filters" aria-label="Task filters">
+    <div class="filters__inner">
+      <label class="filters__field" for="filter-search">
+        Search
+        <input id="filter-search" type="text" placeholder="Title or description">
+      </label>
+      <label class="filters__field" for="filter-tag">
+        Tag
+        <input id="filter-tag" type="text" placeholder="e.g. backend">
+      </label>
+      <label class="filters__field" for="filter-status">
+        Status
+        <select id="filter-status">
+          <option value="">All</option>
+          <option value="ToDo">To Do</option>
+          <option value="InProgress">In Progress</option>
+          <option value="Done">Done</option>
+        </select>
+      </label>
+      <label class="filters__field" for="filter-priority">
+        Priority
+        <select id="filter-priority">
+          <option value="">All</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+        </select>
+      </label>
+      <label class="filters__field" for="filter-assignee">
+        Assignee
+        <input id="filter-assignee" type="text" placeholder="Exact name">
+      </label>
+      <div class="filters__actions">
+        <button type="button" class="btn btn-primary" id="apply-filters-btn">Apply Filters</button>
+        <button type="button" class="btn btn-secondary" id="clear-filters-btn">Clear Filters</button>
+      </div>
+    </div>
+  </section>
+
   <main class="board">
     <section class="column" data-status="ToDo">
       <div class="column__header">
@@ -469,6 +557,49 @@
     const submitTaskBtn = document.getElementById("submit-task-btn");
     const deleteTaskBtn = document.getElementById("delete-task-btn");
     const boardEl = document.querySelector(".board");
+    const filtersEl = document.getElementById("filters");
+
+    function getFilterParams() {
+      const params = new URLSearchParams();
+      const search = document.getElementById("filter-search").value.trim();
+      const tag = document.getElementById("filter-tag").value.trim();
+      const status = document.getElementById("filter-status").value;
+      const priority = document.getElementById("filter-priority").value;
+      const assignee = document.getElementById("filter-assignee").value.trim();
+
+      if (search) {
+        params.set("search", search);
+      }
+      if (tag) {
+        params.set("tag", tag);
+      }
+      if (status) {
+        params.set("status", status);
+      }
+      if (priority) {
+        params.set("priority", priority);
+      }
+      if (assignee) {
+        params.set("assignee", assignee);
+      }
+
+      return params;
+    }
+
+    function updateFilterActiveState() {
+      const hasActiveFilters = getFilterParams().toString().length > 0;
+      filtersEl.classList.toggle("filters--active", hasActiveFilters);
+    }
+
+    function clearFilters() {
+      document.getElementById("filter-search").value = "";
+      document.getElementById("filter-tag").value = "";
+      document.getElementById("filter-status").value = "";
+      document.getElementById("filter-priority").value = "";
+      document.getElementById("filter-assignee").value = "";
+      updateFilterActiveState();
+      loadTasks();
+    }
 
     function escapeHtml(value) {
       return String(value)
@@ -782,16 +913,21 @@
       clearBoard();
 
       try {
-        const response = await fetch(`${API_BASE}/tasks`);
+        const params = getFilterParams();
+        const query = params.toString();
+        const url = query ? `${API_BASE}/tasks?${query}` : `${API_BASE}/tasks`;
+        const response = await fetch(url);
         if (!response.ok) {
-          throw new Error(`Request failed with status ${response.status}`);
+          throw new Error(await parseErrorResponse(response));
         }
 
         const tasks = await response.json();
         currentTasks = tasks;
+        updateFilterActiveState();
         showStatus("");
         renderBoard(tasks);
       } catch (error) {
+        updateFilterActiveState();
         showStatus(`Failed to load tasks. ${error.message}`, true);
         document.querySelectorAll(".column").forEach((column) => {
           renderColumn(column, []);
@@ -801,6 +937,8 @@
 
     function setupEventListeners() {
       document.getElementById("new-task-btn").addEventListener("click", openCreateModal);
+      document.getElementById("apply-filters-btn").addEventListener("click", loadTasks);
+      document.getElementById("clear-filters-btn").addEventListener("click", clearFilters);
       taskFormEl.addEventListener("submit", saveTask);
       deleteTaskBtn.addEventListener("click", deleteTask);
 

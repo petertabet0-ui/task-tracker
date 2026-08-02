@@ -46,6 +46,26 @@ def test_post_invalid_priority_returns_422(client):
     assert response.status_code == 422
 
 
+def test_post_duplicate_tags_normalize_preserving_order(client):
+    response = client.post(
+        "/tasks",
+        json={
+            "title": "Tagged task",
+            "tags": ["  alpha ", "beta", "alpha", "  beta  "],
+        },
+    )
+    assert response.status_code == 201
+    assert response.json()["tags"] == ["alpha", "beta"]
+
+
+def test_post_blank_tags_returns_422(client):
+    response = client.post(
+        "/tasks",
+        json={"title": "Valid task", "tags": ["good", "   "]},
+    )
+    assert response.status_code == 422
+
+
 def test_get_tasks_returns_created_tasks(client):
     created = create_task(client, title="Listed task")
     response = client.get("/tasks")
@@ -76,11 +96,107 @@ def test_get_tasks_supports_tag_filter(client):
     assert body[0]["id"] == created["id"]
 
 
+def test_get_tasks_tag_filter_is_case_insensitive(client):
+    created = create_task(client, title="Tagged task", tags=["Backend"])
+    for tag_param in ["backend", "BACKEND", "BackEnd"]:
+        response = client.get("/tasks", params={"tag": tag_param})
+        assert response.status_code == 200
+        body = response.json()
+        assert len(body) == 1
+        assert body[0]["id"] == created["id"]
+
+
 def test_get_tasks_with_no_matches_returns_empty_list(client):
     create_task(client, title="Existing task")
     response = client.get("/tasks", params={"search": "does-not-exist"})
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_get_tasks_search_matches_description(client):
+    created = create_task(
+        client,
+        title="Plain title",
+        description="Contains unique keyword here",
+    )
+    response = client.get("/tasks", params={"search": "unique keyword"})
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["id"] == created["id"]
+
+
+def test_get_tasks_combined_filters_use_and_logic(client):
+    matching = create_task(
+        client,
+        title="Alpha report",
+        status="InProgress",
+        priority="High",
+        assignee="Alex",
+        tags=["backend"],
+    )
+    create_task(
+        client,
+        title="Alpha draft",
+        status="ToDo",
+        priority="High",
+        assignee="Alex",
+        tags=["backend"],
+    )
+    response = client.get(
+        "/tasks",
+        params={
+            "search": "alpha",
+            "status": "InProgress",
+            "priority": "High",
+            "assignee": "Alex",
+            "tag": "backend",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["id"] == matching["id"]
+
+
+def test_get_tasks_filter_by_status(client):
+    todo_task = create_task(client, title="To Do item", status="ToDo")
+    create_task(client, title="In progress item", status="InProgress")
+    response = client.get("/tasks", params={"status": "ToDo"})
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["id"] == todo_task["id"]
+
+
+def test_get_tasks_filter_by_priority(client):
+    high_task = create_task(client, title="High priority item", priority="High")
+    create_task(client, title="Low priority item", priority="Low")
+    response = client.get("/tasks", params={"priority": "High"})
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["id"] == high_task["id"]
+
+
+def test_get_tasks_filter_by_assignee(client):
+    alex_task = create_task(client, title="Alex task", assignee="Alex")
+    create_task(client, title="Sam task", assignee="Sam")
+    response = client.get("/tasks", params={"assignee": "Alex"})
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["id"] == alex_task["id"]
+
+
+def test_get_tasks_invalid_status_returns_422(client):
+    response = client.get("/tasks", params={"status": "Blocked"})
+    assert response.status_code == 422
+
+
+def test_get_tasks_invalid_priority_returns_422(client):
+    response = client.get("/tasks", params={"priority": "Urgent"})
+    assert response.status_code == 422
 
 
 def test_get_missing_task_returns_404(client):
@@ -97,6 +213,18 @@ def test_patch_updates_title(client):
     )
     assert response.status_code == 200
     assert response.json()["title"] == "Updated title"
+
+
+def test_patch_unrelated_update_preserves_tags(client):
+    created = create_task(client, title="Original title", tags=["backend", "urgent"])
+    response = client.patch(
+        f"/tasks/{created['id']}",
+        json={"title": "Updated title"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["title"] == "Updated title"
+    assert body["tags"] == ["backend", "urgent"]
 
 
 def test_patch_missing_task_returns_404(client):
