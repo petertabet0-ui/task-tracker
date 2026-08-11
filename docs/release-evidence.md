@@ -46,6 +46,30 @@ docker run --rm task-tracker id
 # GitHub → Actions → CI workflow green
 ```
 
+## Claim-versus-reality checks
+
+### 1. Automated test suite
+
+- **Claim:** The automated test suite passes.
+- **How checked:** `python -m pytest tests/ -q`
+- **Reality:** 33 tests passed with 1 non-blocking deprecation warning.
+- **Action/result:** Claim confirmed.
+
+### 2. GitHub Actions CI
+
+- **Claim:** GitHub Actions CI runs successfully on the final-project branch.
+- **How checked:** GitHub Actions workflow history.
+- **Reality:** Multiple CI runs on final-project completed successfully with green checkmarks.
+- **Action/result:** Claim confirmed.
+
+### 3. Docker non-root user
+
+- **Claim:** The Docker container runs as a non-root user.
+- **How checked:** `docker run --rm task-tracker id`
+- **Reality:** The first check returned `uid=0(root)`, so the claim was false. The Dockerfile was changed to create and use `appuser`. After rebuilding, the command returned:
+  `uid=999(appuser) gid=999(appuser) groups=999(appuser)`
+- **Action/result:** Claim initially rejected, corrected, and then verified.
+
 ## Scope confirmation
 
 No new product features. `app/` and `frontend/` unchanged unless a verified bug or security fix is required.
