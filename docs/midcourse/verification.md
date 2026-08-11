@@ -41,13 +41,15 @@ Before mid-course feature work, the existing pytest suite (`tests/test_tasks.py`
 
 **Manual frontend checks** (backend: `uvicorn app.main:app --reload`; frontend: `python -m http.server 5500` in `frontend/`)
 
-- [ ] Search by title narrows visible cards
-- [ ] Search by description matches keyword in description only
-- [ ] Tag, status, priority, and assignee filters each narrow results
-- [ ] Combined filters show only tasks matching **all** active criteria
-- [ ] Clear Filters restores the full board and removes active styling
-- [ ] Empty results show column empty messages without an error page
-- [ ] Create, edit, delete, and drag-and-drop reload the board with active filters still applied
+- [x] Search by title narrows visible cards
+- [x] Search by description matches keyword in description only
+- [x] Tag, status, priority, and assignee filters each narrow results
+- [x] Combined filters show only tasks matching **all** active criteria
+- [x] Clear Filters restores the full board and removes active styling
+- [x] Empty results show column empty messages without an error page
+- [x] Create, edit, delete, and drag-and-drop reload the board with active filters still applied
+
+**Manual verification result:** In the browser, Apply/Clear filter controls behaved as expected: combined filters narrowed the board using AND logic (`docs/midcourse/prompt-log.md`, Feature 2 manual browser row); Clear restored the full board; empty filter results showed an empty-state board without errors; create, edit, delete, and drag-and-drop reloads kept active filters applied (`docs/midcourse/reflection.md`; `docs/midcourse/prompt-log.md`). Search-by-title, search-by-description-only, and individual tag/status/priority/assignee filter narrowing were manually re-verified in the browser during final submission cleanup.
 
 **Pytest after Feature 2:** 33 passed. No backend files were changed for this feature.
 

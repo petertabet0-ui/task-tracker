@@ -9,9 +9,18 @@ Repository: https://github.com/petertabet0-ui/task-tracker
 - Python 3.13+
 - Optional: Docker for containerized API runs
 
+## Deployment
+
+| Component | URL |
+|-----------|-----|
+| Frontend (Cloudflare Pages) | https://task-tracker-j0w.pages.dev |
+| Backend (Render) | https://task-tracker-j1ru.onrender.com |
+
+The committed `frontend/index.html` sets `API_BASE` to the deployed Render backend (`https://task-tracker-j1ru.onrender.com`). Create and edit flows were verified against that deployed API.
+
 ## Local development
 
-### Backend
+### Backend (local run)
 
 ```bash
 python -m venv .venv
@@ -23,16 +32,20 @@ python -m uvicorn app.main:app --reload
 
 Health check: `GET http://127.0.0.1:8000/health` → `{"status":"ok"}`
 
-### Frontend
+Use this when developing or testing the API locally. Pytest and Docker instructions below also target the local backend.
 
-Serve `frontend/index.html` separately (CORS allows port 5500):
+### Frontend (deployed vs local serve)
+
+**Deployed frontend:** Open https://task-tracker-j0w.pages.dev — the board calls the Render backend configured in the committed source.
+
+**Local static serve (optional):** To preview the HTML locally while still using the deployed API:
 
 ```bash
 cd frontend
 python -m http.server 5500
 ```
 
-Open http://127.0.0.1:5500 — the board calls the API at http://127.0.0.1:8000.
+Open http://127.0.0.1:5500 — the committed `API_BASE` still points at `https://task-tracker-j1ru.onrender.com`, not the local uvicorn instance.
 
 ### Tests
 
@@ -67,12 +80,12 @@ This release adds engineering deliverables on top of the mid-course baseline —
 
 **Verified baseline (branch `final-project`):**
 
-- Backend: `python -m uvicorn app.main:app --reload`
-- `GET /health` → `{"status":"ok"}`
-- Frontend create/edit flow works against the local API
+- Local backend: `python -m uvicorn app.main:app --reload`; `GET /health` → `{"status":"ok"}`
+- Deployed frontend: https://task-tracker-j0w.pages.dev calls Render backend; create/edit verified
 - Tests: `33 passed, 1 warning in 1.21s`
 
 See `docs/release-evidence.md` for full evidence.
+
 ## AI Use and Verification Summary
 
 AI tools were used during this project as an engineering assistant for code review, debugging, test suggestions, documentation, and release preparation. AI-generated suggestions were treated as proposals rather than automatically accepted changes.
@@ -82,7 +95,7 @@ I remained responsible for reviewing and verifying the final implementation. Ver
 - Running the automated test suite with `python -m pytest tests/ -q`.
 - Confirming the test baseline of 33 passing tests.
 - Manually checking the FastAPI `/health` endpoint.
-- Manually testing the frontend create and edit task flow against the API.
+- Manually testing the frontend create and edit task flow against the deployed Render API.
 - Building and running the API with Docker.
 - Reviewing AI suggestions against the actual repository code and runtime behavior before accepting them.
 

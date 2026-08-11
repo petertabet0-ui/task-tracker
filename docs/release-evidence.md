@@ -9,7 +9,7 @@ Repository: https://github.com/petertabet0-ui/task-tracker
 |-------|--------|--------------|
 | Health endpoint | Pass | `GET /health` → `{"status":"ok"}` |
 | Backend starts | Pass | `python -m uvicorn app.main:app --reload` |
-| Frontend loads | Pass | `python -m http.server 5500` in `frontend/`; create/edit works |
+| Deployed frontend | Pass | https://task-tracker-j0w.pages.dev (Cloudflare Pages); committed `API_BASE` calls https://task-tracker-j1ru.onrender.com; create/edit verified against deployed backend |
 | Automated tests | Pass | `python -m pytest tests/ -q` → **33 passed, 1 warning in 1.21s** |
 
 Warning: StarletteDeprecationWarning about `httpx` vs `httpx2` in TestClient — pre-existing, non-blocking.
@@ -20,11 +20,11 @@ Warning: StarletteDeprecationWarning about `httpx` vs `httpx2` in TestClient —
 |-------------|--------|----------|
 | GitHub Actions CI | Pass | GitHub Actions CI completed successfully on the `final-project` branch. Multiple pushed commits produced green CI runs. |
 | Dockerfile | Pass | `docker build` + `GET /health` from container; non-root user verified (see below) |
-| `.dockerignore` | Pending | No `.env`, `.venv`, or secrets in image |
-| README Final Project section | Pending | Documents real commands and baseline |
-| AGENTS.md | Pending | Agent constraints and commands |
-| docs/final-ai-review.md | Pending | AI review document |
-| docs/ai-playbook.md | Pending | Reusable workflow |
+| `.dockerignore` | Pass | Excludes `.env`, `.venv`, development artifacts, and `docs/`, `tests/`, `frontend/` from the API image |
+| README Final Project section | Pass | Documents setup, tests, Docker, release deliverables, and AI-use/verification summary |
+| AGENTS.md | Pass | Contains repository-specific AI workflow constraints and commands |
+| docs/final-ai-review.md | Pass | Contains 3 graded code-review comments, 3 graded security findings, manual check, rejected AI output, 3 AI rules, ownership statement |
+| docs/ai-playbook.md | Pass | Completed personal reusable workflow, verified examples, AI rules, rejected output, weak-to-strong prompt, Decision Card, ownership summary |
 
 ## Verification commands
 
@@ -72,4 +72,7 @@ docker run --rm task-tracker id
 
 ## Scope confirmation
 
-No new product features. `app/` and `frontend/` unchanged unless a verified bug or security fix is required.
+No new product features were added during release engineering. Deployment wiring changes were made as integration work, not product features:
+
+- `frontend/index.html`: `API_BASE` changed to the Render backend (`https://task-tracker-j1ru.onrender.com`)
+- `app/main.py`: CORS updated to allow the Cloudflare Pages frontend (`https://task-tracker-j0w.pages.dev`)
