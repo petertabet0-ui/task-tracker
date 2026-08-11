@@ -73,3 +73,17 @@ This release adds engineering deliverables on top of the mid-course baseline —
 - Tests: `33 passed, 1 warning in 1.21s`
 
 See `docs/release-evidence.md` for full evidence.
+## AI Use and Verification Summary
+
+AI tools were used during this project as an engineering assistant for code review, debugging, test suggestions, documentation, and release preparation. AI-generated suggestions were treated as proposals rather than automatically accepted changes.
+
+I remained responsible for reviewing and verifying the final implementation. Verification included:
+
+- Running the automated test suite with `python -m pytest tests/ -q`.
+- Confirming the test baseline of 33 passing tests.
+- Manually checking the FastAPI `/health` endpoint.
+- Manually testing the frontend create and edit task flow against the API.
+- Building and running the API with Docker.
+- Reviewing AI suggestions against the actual repository code and runtime behavior before accepting them.
+
+AI output that did not match the project requirements or verified behavior was rejected or corrected. The final code, documentation, and release decisions were reviewed and accepted by me.

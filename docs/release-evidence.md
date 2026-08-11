@@ -18,8 +18,8 @@ Warning: StarletteDeprecationWarning about `httpx` vs `httpx2` in TestClient —
 
 | Deliverable | Status | Evidence |
 |-------------|--------|----------|
-| GitHub Actions CI | Pending | `.github/workflows/ci.yml` runs pytest on push/PR |
-| Dockerfile | Pending | `docker build` + `GET /health` from container |
+| GitHub Actions CI | Pass | GitHub Actions CI completed successfully on the `final-project` branch. Multiple pushed commits produced green CI runs. |
+| Dockerfile | Pass | `docker build` + `GET /health` from container; non-root user verified (see below) |
 | `.dockerignore` | Pending | No `.env`, `.venv`, or secrets in image |
 | README Final Project section | Pending | Documents real commands and baseline |
 | AGENTS.md | Pending | Agent constraints and commands |
@@ -36,6 +36,11 @@ python -m pytest tests/ -q
 docker build -t task-tracker .
 docker run --rm -p 8000:8000 task-tracker
 curl http://127.0.0.1:8000/health
+
+# Docker non-root user
+docker run --rm task-tracker id
+# uid=999(appuser) gid=999(appuser) groups=999(appuser)
+# Confirms the container runs as a non-root user.
 
 # CI (after push)
 # GitHub → Actions → CI workflow green
