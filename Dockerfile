@@ -6,9 +6,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/ app/
-COPY data/ data/
 
-RUN groupadd --system appuser \
+RUN mkdir -p data \
+    && groupadd --system appuser \
     && useradd --system --gid appuser appuser \
     && chown -R appuser:appuser /app
 

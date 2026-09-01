@@ -18,7 +18,7 @@ Warning: StarletteDeprecationWarning about `httpx` vs `httpx2` in TestClient —
 
 | Deliverable | Status | Evidence |
 |-------------|--------|----------|
-| GitHub Actions CI | Pass | GitHub Actions CI completed successfully on the `final-project` branch. Multiple pushed commits produced green CI runs. |
+| GitHub Actions CI | Pass | Run #8 (commit `4615345`, success): https://github.com/petertabet0-ui/task-tracker/actions/runs/31483999941 |
 | Dockerfile | Pass | `docker build` + `GET /health` from container; non-root user verified (see below) |
 | `.dockerignore` | Pass | Excludes `.env`, `.venv`, development artifacts, and `docs/`, `tests/`, `frontend/` from the API image |
 | README Final Project section | Pass | Documents setup, tests, Docker, release deliverables, and AI-use/verification summary |
@@ -43,7 +43,7 @@ docker run --rm task-tracker id
 # Confirms the container runs as a non-root user.
 
 # CI (after push)
-# GitHub → Actions → CI workflow green
+# Run #8 — https://github.com/petertabet0-ui/task-tracker/actions/runs/31483999941
 ```
 
 ## Claim-versus-reality checks
@@ -58,8 +58,8 @@ docker run --rm task-tracker id
 ### 2. GitHub Actions CI
 
 - **Claim:** GitHub Actions CI runs successfully on the final-project branch.
-- **How checked:** GitHub Actions workflow history.
-- **Reality:** Multiple CI runs on final-project completed successfully with green checkmarks.
+- **How checked:** GitHub Actions workflow run for commit `4615345`.
+- **Reality:** Run #8 completed successfully: https://github.com/petertabet0-ui/task-tracker/actions/runs/31483999941
 - **Action/result:** Claim confirmed.
 
 ### 3. Docker non-root user

@@ -26,6 +26,21 @@
 - CI configured without `continue-on-error` or skipped pytest
 - `.dockerignore` excludes `.env` and dev artifacts
 
+## AGENTS.md guardrails confirmation
+
+I reviewed final AI-assisted release work against `AGENTS.md` and held the agent to those guardrails:
+
+- **Inspect/read first** — gap analyses and release deliverable checks started with file inspection, not immediate edits.
+- **Smallest safe diff** — CI, Docker, docs, and deployment wiring only; no rewrites of working CRUD, storage, or filter logic.
+- **No new product features during release** — release scope stayed on engineering deliverables and deployment integration.
+- **Explicit human approval** — I reviewed AI drafts, rejected over-scoped changes, and approved edits before apply.
+- **Pytest after backend changes** — `python -m pytest tests/ -q` remained the gate after any backend-impacting work.
+- **Preserve architecture/business rules** — status transitions stayed in `app/business_rules.py`; JSON persistence stayed in `app/storage.py`; routes remained thin.
+
+### app/main.py CORS deployment change
+
+The Cloudflare Pages frontend (`https://task-tracker-j0w.pages.dev`) required the backend to allow that deployed origin. I human-reviewed an `app/main.py` change that adds `https://task-tracker-j0w.pages.dev` to `allow_origins` and an `allow_origin_regex` for `trycloudflare.com` tunnel URLs. This was deployment/integration wiring so the deployed frontend could call the API, not a new product feature.
+
 ---
 
 ## Graded code-review comments
@@ -129,7 +144,7 @@ AI proposed files and commands; I confirmed:
 
 1. `python -m pytest tests/ -q` → **33 passed** (1 non-blocking deprecation warning)
 2. Docker health check returns `{"status":"ok"}`
-3. GitHub Actions CI green on `final-project`
+3. GitHub Actions CI Run #8 (commit `4615345`, success): https://github.com/petertabet0-ui/task-tracker/actions/runs/31483999941
 4. Docker non-root user: `docker run --rm task-tracker id` → `uid=999(appuser) gid=999(appuser) groups=999(appuser)`
 
 ---
